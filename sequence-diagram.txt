@@ -1,0 +1,26 @@
+title Declarative Ships
+
+participant client
+participant socketserver
+participant server
+participant json-server
+participant view(ships/hauler/docks)
+participant repository
+participant nss_handler
+
+
+client->socketserver: Send HTTP request \nto API endpoint
+socketserver->server: Search for a handle() method
+note over server: Check if request \nformat is okay
+note over server: If yes, name the \nmethod as follows:\n'do__' + fetch method name\n(GET, POST, etc.)
+server->json-server: invoke the newly \nnamed method \n(do_GET, doPOST, etc.)
+note over json-server: parse the url into a dictionary
+note over json-server: find the requested view class\nbased on url["requested_resource"]
+json-server->view(ships/hauler/docks):invoke get, update, \ncreate, or delete
+note over view(ships/hauler/docks): generate sql string
+view(ships/hauler/docks)->repository: invoke db_get_single, db_get_all,\ndb_update, db_create, or \ndb_delete
+note over repository:execute sql string
+repository->view(ships/hauler/docks): return sql results
+note over view(ships/hauler/docks): format and serialize sql response for\nget requests\n(no text response for update, create, or\ndelete requests
+view(ships/hauler/docks)->nss_handler:invoke response method with the \nserialized response and an HTTP status code
+nss_handler->client: return HTTP response with the response and status code
